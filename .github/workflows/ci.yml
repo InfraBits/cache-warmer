@@ -1,0 +1,26 @@
+name: CI
+on: {push: {branches: [main]}, pull_request: {}}
+concurrency:
+  group: ${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+jobs:
+  tox:
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ["pylama", "mypy", "ruff", "bandit", "black"]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+      - name: Install python dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
+      - name: Install tox
+        run: pip install tox
+      - name: Run tox target
+        run: |
+          tox --current-env -e ${{ matrix.target }}
