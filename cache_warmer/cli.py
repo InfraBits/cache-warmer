@@ -24,10 +24,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import functools
 import logging
 import sys
 from concurrent.futures import ThreadPoolExecutor
-from typing import List
+from typing import List, Optional
 
 import click
 import requests
@@ -50,7 +51,7 @@ def get_urls_from_sitemap(sitemap_url: str) -> List[str]:
     return list({loc.text for loc in soup.find_all("loc")})
 
 
-def _prime_url(url: str, headless: bool) -> None:
+def _prime_url(url: str, driver_url: Optional[str], headless: bool) -> None:
     logger.info(f"Priming {url}")
     options = Options()
     options.set_preference(
@@ -59,22 +60,29 @@ def _prime_url(url: str, headless: bool) -> None:
     )
     if headless:
         options.add_argument("--headless")
-    with webdriver.Firefox(options) as browser:
+
+    if driver_url:
+        driver = functools.partial(webdriver.Remote, command_executor=driver_url)
+    else:
+        driver = functools.partial(webdriver.Firefox)
+
+    with driver(options=options) as browser:
         browser.get(url)
 
 
 @click.command()
 @click.option("--workers", type=int, default=10)
 @click.option("--headless", is_flag=True)
+@click.option("--driver-url", default=None)
 @click.argument("sitemap_url")
-def cli(sitemap_url: str, workers: int, headless: bool) -> None:
+def cli(sitemap_url: str, workers: int, driver_url: Optional[str], headless: bool) -> None:
     """cache_warmer - Site cache warmer."""
     logging.basicConfig(stream=sys.stderr, level=logging.INFO, format="%(asctime)-15s %(message)s")
 
     executor = ThreadPoolExecutor(max_workers=workers)
     try:
         for url in get_urls_from_sitemap(sitemap_url):
-            executor.submit(_prime_url, url, headless)
+            executor.submit(_prime_url, url, driver_url, headless)
     finally:
         executor.shutdown()
 
