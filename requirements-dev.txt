@@ -3,10 +3,10 @@ tox-current-env==0.0.14
 pytest==8.3.4
 pylama==8.4.1
 black==25.1.0
-ruff==0.9.4
-bandit==1.8.2
+ruff==0.9.6
+bandit==1.8.3
 mypy==1.15.0
 types-requests==2.32.0.20241016
-types-setuptools==75.8.0.20250110
+types-setuptools==75.8.0.20250210
 types-beautifulsoup4==4.12.0.20250204
 types-selenium==3.141.9
