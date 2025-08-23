@@ -9,7 +9,7 @@ jobs:
       fail-fast: false
       matrix:
         target: ["pylama", "mypy", "ruff", "bandit", "black"]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python 3.x
